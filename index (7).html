@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Mapa de Negocio en 1 página · Crea tu futuro con IA</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&family=Roboto:wght@300;400;500;700&display=swap');
+
+:root{
+  --verde-claro:#34d399; --verde-medio:#10b981; --verde-oscuro:#059669;
+  --cian:#00C4FF; --azul:#4E54F5; --violeta:#8A3FFC; --rosa:#FF66B2;
+  --d1:#10b981; --d2:#4E54F5; --d3:#8A3FFC;
+}
+*{box-sizing:border-box}
+body{
+  font-family:'Roboto',sans-serif;
+  background:linear-gradient(135deg,#f0f4f8 0%,#e2e8f0 100%);
+  color:#1e293b; min-height:100vh; -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.ubuntu{font-family:'Ubuntu',sans-serif}
+
+.glass{
+  background:rgba(255,255,255,0.65);
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.4);
+  box-shadow:0 8px 32px 0 rgba(31,38,135,0.05);
+}
+
+/* Barra de progreso superior */
+.progress-track{height:10px;background:rgba(203,213,225,0.5);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;width:0%;border-radius:99px;
+  background:linear-gradient(90deg,#6ee7b7,#34d399,#10b981,#4E54F5,#8A3FFC);
+  background-size:200% 100%; animation:shift 3s linear infinite;
+  transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+@keyframes shift{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+
+/* Tarjetas de día */
+.day-card{transition:all .4s cubic-bezier(0.4,0,0.2,1);border-radius:28px;overflow:hidden}
+.day-card.locked{opacity:.55}
+.day-card.locked .day-body{filter:grayscale(.4)}
+
+.day-ribbon{padding:4px 14px;border-radius:99px;font-size:11px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.12em;display:inline-flex;align-items:center;gap:6px}
+
+.field-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#64748b;margin-bottom:6px;display:block}
+.hint{font-size:12.5px;color:#94a3b8;font-style:italic;margin-top:4px;line-height:1.4}
+
+textarea,input[type=text]{
+  width:100%;background:rgba(255,255,255,0.85);border:1.5px solid #e2e8f0;border-radius:14px;
+  padding:12px 14px;font-family:'Roboto',sans-serif;font-size:14.5px;color:#1e293b;
+  transition:all .2s ease;resize:vertical;line-height:1.5;
+}
+textarea:focus,input[type=text]:focus{outline:none;border-color:var(--verde-medio);
+  box-shadow:0 0 0 4px rgba(16,185,129,0.1);background:white}
+textarea.filled,input.filled{border-color:var(--verde-claro);background:rgba(236,253,245,0.7)}
+
+/* Prompt copiable */
+.prompt-box{background:#0f172a;color:#e2e8f0;border-radius:16px;padding:16px 18px;
+  font-size:13px;line-height:1.55;position:relative;font-family:'Roboto',sans-serif}
+.prompt-box .tag{font-size:10px;font-weight:900;letter-spacing:.15em;text-transform:uppercase;
+  color:#34d399;display:block;margin-bottom:8px}
+.copy-btn{position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.1);
+  border:1px solid rgba(255,255,255,0.2);color:#cbd5e1;border-radius:10px;padding:6px 12px;
+  font-size:11px;font-weight:700;cursor:pointer;transition:all .2s}
+.copy-btn:hover{background:var(--verde-medio);color:white;border-color:transparent}
+.placeholder-chip{color:#fbbf24;font-weight:600}
+
+/* MoSCoW pills (día 3) */
+.moscow-pill{padding:3px 10px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;
+  border:1.5px solid transparent;transition:all .2s;user-select:none}
+.m-must{background:#fee2e2;color:#991b1b} .m-should{background:#fef3c7;color:#92400e}
+.m-could{background:#dbeafe;color:#1e40af} .m-wont{background:#f1f5f9;color:#475569}
+.moscow-pill.dim{opacity:.35}
+
+.seal{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:900;color:white;flex-shrink:0}
+
+.btn-primary{background:linear-gradient(45deg,var(--verde-oscuro),var(--verde-medio));color:white;
+  border:none;border-radius:14px;padding:12px 22px;font-weight:700;font-family:'Ubuntu';cursor:pointer;
+  transition:all .3s;font-size:14px}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(16,185,129,0.3)}
+.btn-ghost{background:rgba(255,255,255,0.7);border:1.5px solid #e2e8f0;border-radius:14px;
+  padding:12px 22px;font-weight:700;font-family:'Ubuntu';cursor:pointer;transition:all .2s;font-size:14px;color:#475569}
+.btn-ghost:hover{border-color:var(--verde-medio);color:var(--verde-oscuro)}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);
+  background:#0f172a;color:white;padding:14px 24px;border-radius:14px;font-weight:600;font-size:14px;
+  z-index:999;transition:transform .4s cubic-bezier(0.175,0.885,0.32,1.275);box-shadow:0 10px 30px rgba(0,0,0,0.2)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+.example-toggle{font-size:12px;font-weight:700;color:var(--verde-oscuro);cursor:pointer;
+  display:inline-flex;align-items:center;gap:4px;padding:4px 0}
+.example-box{background:rgba(16,185,129,0.06);border-left:3px solid var(--verde-claro);
+  border-radius:0 12px 12px 0;padding:10px 14px;font-size:13px;color:#334155;line-height:1.5;margin-top:8px}
+
+@media print{
+  .no-print{display:none !important}
+  body{background:white}
+  .day-card.locked{opacity:1}
+  .glass{background:white;box-shadow:none;border:1px solid #e2e8f0}
+}
+::-webkit-scrollbar{width:7px}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
+</style>
+</head>
+<body class="pb-24">
+
+<!-- HEADER -->
+<header class="max-w-4xl mx-auto px-5 pt-10 pb-6">
+  <div class="flex items-center gap-2 mb-3">
+    <span class="text-xs font-bold tracking-[0.2em] uppercase text-slate-400 ubuntu">Emprende y Avanza · Crea tu futuro con IA</span>
+  </div>
+  <h1 class="text-3xl md:text-4xl font-bold text-slate-800 leading-tight">
+    Mi Mapa de Negocio <span class="text-emerald-600">en 1 página</span>
+  </h1>
+  <p class="text-slate-500 mt-2 text-[15px] leading-relaxed max-w-2xl">
+    Tu negocio ya es bueno. En estas semanas lo vas a hacer visible, distinto e imparable.
+    Este documento crece contigo: una sección por día, y ahora también la Semana 2. Al final, te lo llevas entero.
+  </p>
+
+  <!-- Identidad -->
+  <div class="glass rounded-2xl p-4 mt-5 flex flex-col sm:flex-row gap-3">
+    <div class="flex-1">
+      <label class="field-label">Tu nombre</label>
+      <input type="text" id="ownerName" placeholder="Quién está detrás del negocio" oninput="markFilled(this);save()">
+    </div>
+    <div class="flex-1">
+      <label class="field-label">Tu negocio</label>
+      <input type="text" id="bizName" placeholder="Nombre o idea de tu negocio" oninput="markFilled(this);save()">
+    </div>
+  </div>
+
+  <!-- Progreso -->
+  <div class="mt-6">
+    <div class="flex justify-between items-end mb-2">
+      <span class="field-label !mb-0">Progreso del viaje</span>
+      <span class="text-sm font-bold text-emerald-600 ubuntu" id="progressLabel">0% · empieza por el Día 1</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-5 space-y-6">
+
+  <!-- ================= DÍA 1 ================= -->
+  <section class="day-card glass" data-day="1">
+    <div class="day-body p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="seal" style="background:linear-gradient(45deg,#059669,#34d399)">1</div>
+          <div>
+            <span class="day-ribbon" style="background:#dcfce7;color:#166534">Día 1 · Piensa en grande</span>
+            <h2 class="text-xl font-bold text-slate-800 mt-1">Tu posicionamiento</h2>
+          </div>
+        </div>
+        <span class="text-2xl" id="seal-1">🔓</span>
+      </div>
+      <p class="text-slate-500 text-sm mb-5">Por qué existe tu negocio y por qué tú, y no el de al lado.</p>
+
+      <!-- ===== KIT DE PROMPTS DEL DÍA 1 (orden de la clase) ===== -->
+      <div class="rounded-2xl p-4 mb-6" style="background:#f0fdf4;border:1.5px solid #86efac">
+        <div class="field-label" style="color:#166534;margin-bottom:4px">📋 Tus prompts de hoy, en orden</div>
+        <p class="text-sm text-slate-600 mb-3">Pulsa <b>Copiar</b>, pégalo en tu IA y cambia solo lo amarillo. No hace falta escribir nada a mano.</p>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Reto 0 · Tu primera pregunta</span>
+        <span data-prompt>Dame ideas de marketing para mi negocio. Mi negocio es: <span class="placeholder-chip">[tu negocio en una frase]</span>.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Reto 2 · Plantilla para fabricar tu experto</span>
+        <span data-prompt>Actúa como <span class="placeholder-chip">[ROL: el experto top que necesitas + por qué es el mejor]</span>.<br>Mi negocio: <span class="placeholder-chip">[qué vendes exactamente]</span>.<br>Mi cliente: <span class="placeholder-chip">[a quién se lo vendes]</span>.<br>Mi situación: <span class="placeholder-chip">[tu límite real: dinero, tiempo, equipo]</span>.<br>Reglas: <span class="placeholder-chip">[qué NO debe proponerte nunca]</span>.<br>Tu tarea: <span class="placeholder-chip">[qué le pides ahora, lo más concreto posible]</span>.<br>Antes de responder, si te falta algún dato importante, pregúntamelo.</span>
+      </div>
+      <span class="example-toggle no-print" onclick="toggleExample('exExperto')">▸ Ver la plantilla ya rellena (tienda de ropa)</span>
+      <div class="example-box hidden" id="exExperto">
+        Actúa como un CMO especializado en moda local que ha hecho crecer 50 tiendas de barrio compitiendo contra Zara y las grandes cadenas.<br>
+        Mi negocio: tienda de ropa de mujer en un pueblo de 8.000 habitantes.<br>
+        Mi cliente: mujeres de 35-55 que quieren vestir bien sin ir a la ciudad.<br>
+        Mi situación: 0€ para anuncios, trabajo sola, 2 horas libres al día.<br>
+        Reglas: nada que necesite invertir dinero por adelantado. Nada que requiera un equipo. Sé concreto y realista con mi tiempo.<br>
+        Tu tarea: dame una estrategia de captación para los próximos 30 días, priorizada por impacto, y dime qué hago yo cada semana.
+      </div>
+      <div class="mb-3"></div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Reto 3 · Tus 5 Porqués</span>
+        <span data-prompt>Hazme los 5 porqués sobre mi negocio para descubrir mi valor real. Una pregunta cada vez, y profundiza en mis respuestas.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Reto 4 · Si te atascas con tu posicionamiento</span>
+        <span data-prompt>Eres un consultor de posicionamiento experto. Con todo lo que sabes de mi negocio, ayúdame a afinar mi propuesta de valor.<br>Hazme estas 3 preguntas, UNA A UNA, y no pases a la siguiente hasta que mi respuesta sea concreta y específica (si es vaga, insiste):<br>1) ¿Qué problema real le resuelvo a mi cliente?<br>2) ¿Para quién soy un alivio de verdad?<br>3) ¿Por qué me elegirían a mí y no a la competencia?<br>Cuando terminemos, resume mi posicionamiento en 3 frases claras.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Reto 5 · Destila tu frase</span>
+        <span data-prompt>Con lo que sabes de mi negocio y mis respuestas, redacta mi propuesta de valor con esta fórmula: “Ayudo a <span class="placeholder-chip">[quién]</span> a <span class="placeholder-chip">[resultado]</span> sin <span class="placeholder-chip">[dolor]</span>, a diferencia de <span class="placeholder-chip">[alternativa]</span>.” Dame 3 versiones.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Reto 6 · Tu primera pieza real</span>
+        <span data-prompt>Con mi posicionamiento y lo que sabes de mi negocio, escríbeme UNA de estas: (a) un WhatsApp para reactivar a clientes que hace tiempo no vienen, (b) un texto para Instagram, o (c) una respuesta a una reseña. Tono cercano, máximo 80 palabras. Dame 3 versiones.</span>
+      </div>
+      </div>
+
+      <!-- Pregunta 1 -->
+      <div class="mb-5">
+        <label class="field-label">1 · ¿Qué problema resuelves de verdad?</label>
+        <textarea rows="2" data-field placeholder="No lo que vendes — el problema que le quitas a alguien." oninput="markFilled(this);save()"></textarea>
+        <div class="hint">Pista: termina la frase "mis clientes vienen a mí porque no soportan más…"</div>
+      </div>
+
+      <!-- Pregunta 2 -->
+      <div class="mb-5">
+        <label class="field-label">2 · ¿Para quién es esto un alivio?</label>
+        <textarea rows="2" data-field placeholder="A quién le cambias el día. Sin demografía fina todavía — eso vendrá después." oninput="markFilled(this);save()"></textarea>
+        <div class="hint">Pista: piensa en la última persona que te dijo "menos mal que te encontré".</div>
+      </div>
+
+      <!-- Pregunta 3 -->
+      <div class="mb-5">
+        <label class="field-label">3 · ¿Por qué tú y no otro?</label>
+        <textarea rows="2" data-field placeholder="Tu forma de hacerlo, tu historia, tu manía, tu obsesión." oninput="markFilled(this);save()"></textarea>
+        <div class="hint">Pista: lo que haces "raro" suele ser justo tu diferencia.</div>
+      </div>
+
+      <!-- Destilado -->
+      <div class="rounded-2xl p-4 mb-4" style="background:rgba(16,185,129,0.07);border:1.5px dashed #34d399">
+        <label class="field-label" style="color:#059669">★ Tu propuesta de valor en una frase</label>
+        <textarea rows="2" data-field id="valueProp" placeholder="Ayudo a [quién] a [resultado] sin [dolor], a diferencia de [alternativa]." oninput="markFilled(this);save()" style="background:white"></textarea>
+        <div class="hint">Esta es la cabecera de tu mapa. Que suene a ti, no a folleto.</div>
+      </div>
+
+      <p class="text-sm text-slate-500 mb-3">¿Atascado? Usa el prompt del <b>Reto 4</b> del kit de arriba.</p>
+      <span class="example-toggle no-print" onclick="toggleExample('ex1')">▸ Ver ejemplo (panadería de barrio)</span>
+      <div class="example-box hidden" id="ex1">
+        <b>Problema:</b> la gente del barrio no quiere pan industrial pero no tiene tiempo de buscar algo mejor.<br>
+        <b>Alivio para:</b> familias que desayunan con prisa y echan de menos el pan "de antes".<br>
+        <b>Por qué yo:</b> masa madre fermentada 24h, receta de mi abuela, horneo a las 6am.<br>
+        <b>★ Propuesta:</b> "Ayudo a las familias del barrio a empezar el día con pan de verdad sin madrugar ni conformarse con el del súper, a diferencia de las cadenas que hornean congelado."
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= DÍA 2 ================= -->
+  <section class="day-card glass locked" data-day="2">
+    <div class="day-body p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="seal" style="background:linear-gradient(45deg,#4E54F5,#00C4FF)">2</div>
+          <div>
+            <span class="day-ribbon" style="background:#e0e7ff;color:#3730a3">Día 2 · Investiga como un tiburón</span>
+            <h2 class="text-xl font-bold text-slate-800 mt-1">Tu mercado y tu hueco</h2>
+          </div>
+        </div>
+        <span class="text-2xl" id="seal-2">🔒</span>
+      </div>
+      <p class="text-slate-500 text-sm mb-5">Investiga a tu competencia con fuentes reales y encuentra el hueco que nadie ocupa.</p>
+
+      <!-- ===== KIT DE PROMPTS DEL DÍA 2 (orden de la clase) ===== -->
+      <div class="rounded-2xl p-4 mb-6" style="background:#eef2ff;border:1.5px solid #a5b4fc">
+        <div class="field-label" style="color:#3730a3;margin-bottom:4px">📋 Tus prompts de hoy, en orden</div>
+        <p class="text-sm text-slate-600 mb-1">Pulsa <b>Copiar</b>, pégalo y cambia solo lo amarillo.</p>
+        <p class="text-sm text-slate-600 mb-3">⚠️ Los de los Retos 1 y 5 van en una <b>IA con el buscador activado</b>. Si no te devuelve enlaces, no ha buscado. El del Reto 2 va en <b>NotebookLM</b>, con tus fuentes ya subidas.</p>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Reto 1 · Estudio de mercado (IA con buscador)</span>
+        <span data-prompt>Actúa como analista de mercado. Busca en internet (no de memoria) y cítame las fuentes con enlace.<br>Mi negocio: <span class="placeholder-chip">[producto en 2 frases]</span> para <span class="placeholder-chip">[cliente]</span> en <span class="placeholder-chip">[zona]</span>.<br>Dame:<br>1. Tamaño de mercado y segmento accesible (cifras + fuente)<br>2. 5-8 competidores: modelo, propuesta de valor y precio público<br>3. Tendencias de los últimos 24 meses<br>4. Cada dato, con su enlace. Si no lo encuentras, dilo.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Reto 1 · Mapa competitivo (IA con buscador)</span>
+        <span data-prompt>Con búsqueda en internet, hazme un mapa competitivo para resolver <span class="placeholder-chip">[problema]</span> en <span class="placeholder-chip">[zona]</span>. Para cada competidor:<br>· Nombre y web (enlace)<br>· Cómo gana dinero<br>· Propuesta de valor en una frase<br>· Precio (si es público)<br>· Punto fuerte y punto DÉBIL (busca reseñas / quejas reales)<br>Al final: ¿qué HUECO no cubre bien nadie?<br>Cada dato con su fuente. No inventes.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Reto 2 · Analiza tus fuentes (NotebookLM)</span>
+        <span data-prompt>Con las fuentes de este cuaderno, compárame cada competidor:<br>· Precio<br>· Propuesta de valor en una frase<br>· Punto fuerte y punto débil<br>Cita la fuente de cada dato entre corchetes.<br>Al final, dime qué necesidad NO cubre bien ninguno.<br>Si algo no está en las fuentes, dilo. No inventes.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Reto 3 · Estresa a tu cliente</span>
+        <span data-prompt>Estoy desarrollando <span class="placeholder-chip">[proyecto]</span>.<br>Mi cliente objetivo es <span class="placeholder-chip">[cliente en 1 frase]</span>.<br>Actúa como consultor escéptico de Lean Startup:<br>1. Las 5 preguntas más incómodas para ver si mi cliente está mal definido o es demasiado abstracto.<br>2. 3 segmentos dentro de ese perfil que se comportarían de forma muy distinta.<br>3. 5 preguntas para una entrevista de descubrimiento.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Reto 3 · Tu Value Proposition Canvas</span>
+        <span data-prompt>Hazme el Value Proposition Canvas de mi negocio: primero tareas, dolores y alegrías de mi cliente, luego cómo mi oferta encaja. Pregúntame lo que necesites.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Reto 4 · El porqué de tu competencia</span>
+        <span data-prompt>Con los datos de mi research, hazme los 5 porqués sobre por qué le compran a mi competencia. Busca su punto débil.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Reto 5 · Encuentra tu hueco (océano azul)</span>
+        <span data-prompt>Con mi mapa competitivo y mi propuesta de valor:<br>1. ¿Qué necesidad de mi cliente NINGÚN competidor está resolviendo bien?<br>2. ¿Cuál de esos huecos encaja con lo que YO hago mejor?<br>3. Propón 3 posiciones únicas que podría ocupar, y dime cuál es la más defendible a largo plazo.</span>
+      </div>
+      </div>
+
+      <div class="mb-5">
+        <label class="field-label">Tus 3 competidores principales</label>
+        <textarea rows="3" data-field placeholder="Nombre + en una frase qué ofrecen. Los que tu cliente mira antes de elegirte." oninput="markFilled(this);save()"></textarea>
+        <div class="hint">Pista: si crees que no tienes competencia, es que aún no la has buscado bien.</div>
+      </div>
+
+      <div class="mb-5">
+        <label class="field-label">La propuesta de valor real de cada uno (los 5 porqués)</label>
+        <textarea rows="3" data-field placeholder="¿Por qué les compran? Pregunta 'por qué' 5 veces hasta llegar al motivo de verdad." oninput="markFilled(this);save()"></textarea>
+      </div>
+
+      <div class="rounded-2xl p-4 mb-4" style="background:rgba(78,84,245,0.06);border:1.5px dashed #4E54F5">
+        <label class="field-label" style="color:#4E54F5">🌊 Tu océano azul: el hueco que vas a ocupar</label>
+        <textarea rows="2" data-field placeholder="Lo que ninguno hace bien y tú sí puedes hacer." oninput="markFilled(this);save()" style="background:white"></textarea>
+        <div class="hint">Aquí es donde dejas de competir por precio y empiezas a competir por ser distinto.</div>
+      </div>
+
+      <div class="hint">💡 Orden de trabajo: primero ENCUENTRAS (IA con buscador), luego RECOPILAS los enlaces y por último ANALIZAS en NotebookLM.</div>
+    </div>
+  </section>
+
+  <!-- ================= DÍA 3 ================= -->
+  <section class="day-card glass locked" data-day="3">
+    <div class="day-body p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="seal" style="background:linear-gradient(45deg,#8A3FFC,#FF66B2)">3</div>
+          <div>
+            <span class="day-ribbon" style="background:#f3e8ff;color:#6b21a8">Día 3 · Construye y publica</span>
+            <h2 class="text-xl font-bold text-slate-800 mt-1">Tu primera herramienta, en internet</h2>
+          </div>
+        </div>
+        <span class="text-2xl" id="seal-3">🔒</span>
+      </div>
+      <p class="text-slate-500 text-sm mb-5">4 fases, un archivo, una URL propia al final del día.</p>
+
+      <!-- ===== KIT DE PROMPTS DEL DÍA 3 (orden de la clase) ===== -->
+      <div class="rounded-2xl p-4 mb-6" style="background:#faf5ff;border:1.5px solid #d8b4fe">
+        <div class="field-label" style="color:#6b21a8;margin-bottom:4px">📋 Tus prompts de hoy, en orden</div>
+        <p class="text-sm text-slate-600 mb-3">Pulsa <b>Copiar</b>, pégalo en tu IA y cambia solo lo amarillo. Sigue en el MISMO chat las 4 fases — no abras uno nuevo cada vez.</p>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Fase 1 · Tu fachada visual</span>
+        <span data-prompt>Quiero crear [tu herramienta] para mi negocio de [tu sector]. Hazme primero solo el diseño visual, en HTML y CSS, en un único archivo. No añadas funcionalidad todavía, solo que se vea bien y ordenado.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Fase 2 · Dale vida: la lógica</span>
+        <span data-prompt>Ahora añade la funcionalidad: [describe qué tiene que HACER tu herramienta, con el máximo detalle posible]. No cambies el diseño que ya tenemos, añade solo el comportamiento.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Fase 3 · Pulido</span>
+        <span data-prompt>Pule estos detalles: que se vea bien también en pantallas de móvil, añade un mensaje claro si [algo puede fallar], y mejora los colores para que sea más agradable de usar.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Fase 4 · Tu extra sorpresa</span>
+        <span data-prompt>Añade una barra de progreso arriba que se llene al completar [una acción]. Añade también un pequeño temporizador en una esquina.</span>
+      </div>
+      </div>
+
+      <div class="mb-5">
+        <label class="field-label">Qué herramienta construyes hoy</label>
+        <textarea rows="2" data-field placeholder="Una calculadora, un catálogo, un formulario... la idea con la que empiezas." oninput="markFilled(this);save()"></textarea>
+      </div>
+
+      <!-- MoSCoW -->
+      <div class="mb-5">
+        <label class="field-label">Tus próximas tareas, priorizadas (MoSCoW)</label>
+        <div class="hint !mt-0 !mb-3">Escribe una tarea por línea. Toca la etiqueta para marcar si es imprescindible (Must), importante (Should), opcional (Could) o para más adelante (Won't).</div>
+        <div id="taskList" class="space-y-2"></div>
+        <button class="btn-ghost mt-3 !py-2 !px-4 !text-[13px]" onclick="addTask()">+ Añadir tarea</button>
+      </div>
+
+      <div class="rounded-2xl p-4 mb-4" style="background:rgba(138,63,252,0.06);border:1.5px dashed #8A3FFC">
+        <label class="field-label" style="color:#8A3FFC">🌐 Tu URL publicada</label>
+        <textarea rows="2" data-field placeholder="tu-herramienta.vercel.app — pégala aquí en cuanto la tengas." oninput="markFilled(this);save()" style="background:white"></textarea>
+      </div>
+
+      <div class="hint">💡 Todos los prompts de hoy están en el kit de arriba.</div>
+    </div>
+  </section>
+
+
+  <!-- ================= SEMANA 2 · DÍA 1 ================= -->
+  <section class="day-card glass" data-day="4">
+    <div class="day-body p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="seal" style="background:linear-gradient(45deg,#0EA5E9,#8A3FFC);font-size:11px">2·1</div>
+          <div>
+            <span class="day-ribbon" style="background:#e0f2fe;color:#075985">Semana 2 · Día 1 · Destaca con tu voz</span>
+            <h2 class="text-xl font-bold text-slate-800 mt-1">Pon a prueba lo que construiste</h2>
+          </div>
+        </div>
+      </div>
+      <p class="text-slate-500 text-sm mb-5">Una Junta Directiva decide sobre tu proyecto, le robas el criterio a alguien que admiras y practicas en voz la conversación que más te cuesta.</p>
+
+      <div class="rounded-2xl p-4 mb-6" style="background:#f0f9ff;border:1.5px solid #7dd3fc">
+        <div class="field-label" style="color:#075985;margin-bottom:6px">🧩 Qué tiene un prompt de calidad (las 8 piezas)</div>
+        <p class="text-sm text-slate-600 mb-2">Detallado no es largo: cada línea toma una decisión. Los prompts de hoy llevan todos estas piezas.</p>
+        <ol class="text-sm text-slate-700 space-y-1" style="list-style:decimal;padding-left:20px">
+          <li><b>Rol y contexto:</b> quién es la IA y para quién trabaja.</li>
+          <li><b>Datos reales:</b> tus cifras, no ejemplos genéricos.</li>
+          <li><b>Tarea en pasos</b>, con un criterio claro de “hecho”.</li>
+          <li><b>Reglas en positivo</b> (lo que SÍ debe hacer) y con su motivo.</li>
+          <li><b>Formato de salida exacto:</b> títulos, tablas, longitud máxima.</li>
+          <li><b>Si falta información:</b> marcar [DATO NO APORTADO] y preguntar, como máximo, 3 cosas.</li>
+          <li><b>Revisión final:</b> la IA se corrige antes de contestar.</li>
+          <li><b>Segunda vuelta:</b> prompts para profundizar en el mismo chat.</li>
+        </ol>
+        <p class="hint">Las etiquetas como &lt;rol&gt; o &lt;proyecto&gt; separan las instrucciones de tus datos. Cópialas tal cual.</p>
+      </div>
+      <div class="rounded-2xl p-4 mb-6" style="background:#f0f9ff;border:1.5px solid #7dd3fc">
+        <div class="field-label" style="color:#075985;margin-bottom:4px">📋 Tus prompts de hoy, en orden</div>
+        <p class="text-sm text-slate-600 mb-3">Pulsa <b>Copiar</b>, pégalo en Gemini y cambia solo lo amarillo. Las etiquetas &lt;así&gt; se copian tal cual.</p>
+        <div class="field-label" style="color:#075985;margin-top:6px">1 · Tu Junta Directiva (pega tu Mapa de la semana pasada dentro de &lt;proyecto&gt;)</div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Junta Directiva · 4 expertos que discuten</span>
+        <span data-prompt>&lt;rol&gt;<br>Eres una junta directiva de 4 expertos independientes que evalúa el proyecto de un pequeño negocio en España. Cada uno defiende su criterio aunque incomode.<br>- FINANCIERO: ¿sale el dinero? Revisa ingresos, costes, margen, punto de equilibrio y necesidad de caja. Desconfía de las cifras sin base.<br>- MARKETING: ¿se entiende y se diferencia? Revisa propuesta de valor, cliente ideal, hueco de mercado y cómo llegan los clientes.<br>- ESCÉPTICO: busca el fallo que nadie quiere ver. Revisa supuestos sin comprobar, dependencias, riesgos legales u operativos y qué pasa si falla lo más probable.<br>- INVERSOR: ¿apostaría su propio dinero? Revisa si el negocio puede crecer, cómo se defiende de la competencia y qué pruebas hay hoy (clientes, ventas, datos).<br>&lt;/rol&gt;<br><br>&lt;proyecto&gt;<br><span class="placeholder-chip">[PEGA AQUÍ TU MAPA DE NEGOCIO COMPLETO: posicionamiento, frase de valor, hueco o océano azul, Canvas, competidores y tu herramienta publicada]</span><br>&lt;/proyecto&gt;<br><br>&lt;tarea&gt;<br>Evalúa si este proyecto está listo para dar el siguiente paso. Trabaja en 4 rondas:<br>1. OPINIÓN INDIVIDUAL: cada experto da su nota (1-10) con 2 razones. Cada razón cita la frase concreta de &lt;proyecto&gt; en la que se apoya.<br>2. DEBATE: los expertos se responden entre sí. Tiene que haber al menos un desacuerdo real (3 puntos de diferencia o más, o un argumento rebatido). Si de verdad coinciden, explican por qué y qué riesgo común podrían estar pasando por alto.<br>3. VEREDICTO: nota final (la media redondeada), una frase de conclusión y la condición concreta que subiría la nota 2 puntos.<br>4. PLAN: 3 KPIs a vigilar (nombre, cómo se mide, valor actual si consta, meta a 90 días) y las 3 correcciones más urgentes ordenadas por impacto, cada una con su plazo (menos de 1 día, 1 semana o 1 mes).<br>&lt;/tarea&gt;<br><br>&lt;reglas&gt;<br>- Basa cada afirmación en lo que aparece en &lt;proyecto&gt;. Si falta un dato necesario (precio, coste, volumen, fecha...), escribe [DATO NO APORTADO] en vez de suponerlo, y al final haz como máximo 3 preguntas para completarlo.<br>- Cada experto habla desde su propio criterio; evita frases que valdrían para cualquier negocio.<br>- Usa lenguaje claro y explica en una línea cualquier término financiero. Cifras en euros y con formato español.<br>- Mantén la nota que de verdad merece el proyecto, aunque sea baja: una evaluación honesta le sirve más al emprendedor.<br>&lt;/reglas&gt;<br><br>&lt;formato_salida&gt;<br>Títulos exactos: "1. Opiniones" (tabla: experto | nota | razones), "2. Debate" (diálogo breve), "3. Veredicto", "4. KPIs" (tabla), "5. Tres correcciones urgentes" (lista numerada), "6. Preguntas pendientes". Máximo 600 palabras en total.<br>&lt;/formato_salida&gt;<br><br>&lt;revision_final&gt;<br>Antes de responder comprueba: ¿hay un desacuerdo real en el debate? ¿cada nota cita el proyecto? ¿cada KPI se puede medir con una cifra? Si algo falla, corrígelo antes de mostrar la respuesta.<br>&lt;/revision_final&gt;</span>
+      </div>
+      <details class="mb-4" style="background:rgba(15,23,42,0.04);border-radius:14px;padding:10px 14px">
+        <summary style="cursor:pointer;font-weight:700;font-size:13px;color:#334155">Segunda vuelta de la Junta (en el mismo chat, una por una)</summary>
+        <div class="mt-3">
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">a · Ataque al punto fuerte</span>
+        <span data-prompt>Que el Escéptico y el Inversor ataquen ahora lo mejor de mi proyecto, el punto que Marketing y Financiero defendieron. ¿Aguanta? Termina con la versión corregida de ese punto en 2 frases.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">b · Plan de 7 días</span>
+        <span data-prompt>Convierte la corrección nº 1 en un plan de 7 días: una acción diaria de 30 minutos como máximo, con el resultado concreto que debo tener al final de cada día. Indica qué KPI debería moverse y cuánto.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">c · Segunda nota</span>
+        <span data-prompt>Imagina que he ejecutado el plan de 7 días. Vuelve a puntuar el proyecto con los mismos 4 expertos y muestra la comparación: nota antes | nota después | qué ha cambiado.</span>
+      </div>
+        </div>
+      </details>
+        <div class="field-label mt-4" style="color:#075985">2 · Clona el estilo de un experto</div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Paso 1 · En NotebookLM, con las fuentes de tu referente</span>
+        <span data-prompt>Eres un analista de métodos. Usando SOLO las fuentes de este cuaderno, extrae el criterio de decisión de esta persona para que otro asesor pueda aplicarlo después. No quiero su guion: quiero su manera de pensar.<br><br>Entrega estas 7 secciones:<br>1. PRINCIPIOS (5-7): reglas que repite o aplica de forma consistente, cada una en una frase y con su fuente.<br>2. CÓMO DECIDE: las preguntas de diagnóstico que hace antes de opinar, en el orden en que las hace.<br>3. ESTRUCTURA DE SUS CONSEJOS: cómo ordena una respuesta típica (por ejemplo: problema, causa, acción, métrica) y cuánto detalle da.<br>4. TONO Y RECURSOS: registro, nivel de franqueza y tipo de ejemplos o metáforas que usa (describe el tipo, no copies frases).<br>5. LÍNEAS ROJAS: lo que desaconseja siempre y lo que nunca recomendaría, con la razón que da.<br>6. DÓNDE NO ENCAJA: situaciones o tipos de negocio en los que su criterio podría fallar, según lo que dicen las fuentes.<br>7. CONFIANZA: marca cada punto como [REPETIDO EN VARIAS FUENTES] o [SOLO EN UNA FUENTE].<br><br>Reglas: cita la fuente de cada punto entre corchetes; parafrasea siempre; si las fuentes no permiten saber algo, escribe [NO ESTÁ EN LAS FUENTES] en vez de rellenarlo.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Paso 2 · Instrucciones de tu Gem en Gemini</span>
+        <span data-prompt>&lt;identidad&gt;<br>Eres "Consejero <span class="placeholder-chip">[REFERENTE]</span>": un asesor que aplica el método y el criterio descritos en &lt;criterio&gt; a proyectos de pequeños negocios. Aplicas su manera de razonar. No te haces pasar por la persona real ni inventas citas suyas.<br>&lt;/identidad&gt;<br><br>&lt;criterio&gt;<br><span class="placeholder-chip">[PEGA AQUÍ EL ANÁLISIS COMPLETO DE NOTEBOOKLM]</span><br>&lt;/criterio&gt;<br><br>&lt;mi_proyecto&gt;<br><span class="placeholder-chip">[Qué vendo, a quién, en qué ciudad y qué quiero lograr en 90 días, en 3 líneas]</span><br>&lt;/mi_proyecto&gt;<br><br>&lt;como_trabajas&gt;<br>1. Cuando te planteo una decisión, empieza con las preguntas de diagnóstico del criterio: máximo 3, de una en una, y solo si te falta información decisiva. Si no, responde directamente.<br>2. Responde con la estructura del criterio (apartado 3), adaptada a mi proyecto.<br>3. Cierra con "Dónde no encaja": en una frase, qué parte del criterio podría no aplicarse a mi caso y por qué.<br>4. Si mi planteamiento choca con una de sus líneas rojas, dímelo con la razón antes de dar alternativas.<br>&lt;/como_trabajas&gt;<br><br>&lt;tono&gt;<br>Directo, concreto y cercano. Prioriza acciones que pueda hacer esta semana con poco presupuesto.<br>&lt;/tono&gt;<br><br>&lt;limites&gt;<br>- Si te pregunto algo que el criterio no cubre, responde "Esto no está cubierto por el criterio que tengo; te doy una orientación general" y señala qué parte es general.<br>- Basa tus deducciones solo en &lt;criterio&gt; y &lt;mi_proyecto&gt;; si te falta un dato, pídelo.<br>&lt;/limites&gt;<br><br>&lt;ejemplo&gt;<br>Usuario: ¿Bajo precios para competir con el bar de enfrente?<br>Consejero: Antes de decidir: ¿cuál es tu margen por consumición hoy? <span class="placeholder-chip">[pregunta de diagnóstico del criterio]</span>. Según el principio "<span class="placeholder-chip">[nombre de un principio]</span>", competir por precio solo compensa si <span class="placeholder-chip">[condición]</span>. Esta semana: <span class="placeholder-chip">[acción concreta y medible]</span>. Dónde no encaja: <span class="placeholder-chip">[una frase]</span>.<br>&lt;/ejemplo&gt;<br><br>&lt;revision_final&gt;<br>Antes de responder, comprueba que nombras al menos un principio del criterio y que la acción propuesta se puede hacer esta semana.<br>&lt;/revision_final&gt;</span>
+      </div>
+        <div class="field-label mt-4" style="color:#075985">3 · Gemini Live (prompt en un chat de texto, después pulsa el micrófono desde esa misma conversación; di PAUSA para el feedback)</div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Preparación del ensayo por voz</span>
+        <span data-prompt>&lt;rol&gt;<br>Vas a ser mi interlocutor en un ensayo de conversación por VOZ. Yo practico; tú eres la otra parte.<br>&lt;/rol&gt;<br><br>&lt;mi_negocio&gt;<br>Negocio: <span class="placeholder-chip">[qué hago]</span>. Cliente típico: <span class="placeholder-chip">[una frase]</span>. Mi tono habitual: <span class="placeholder-chip">[cercano / formal / directo]</span>. Lo que quiero conseguir en esta conversación: <span class="placeholder-chip">[por ejemplo, mantener al cliente sin dar el descuento]</span>.<br>&lt;/mi_negocio&gt;<br><br>&lt;escena&gt;<br><span class="placeholder-chip">[PEGA AQUÍ UNA DE LAS 3 ESCENAS DE ABAJO]</span><br>&lt;/escena&gt;<br><br>&lt;como_actuar&gt;<br>- Habla en frases cortas, como en una llamada real: una o dos frases por turno. Sin listas ni símbolos: se te va a escuchar, no a leer.<br>- Mantén tu personaje y reacciona a lo que digo: si cedo demasiado, aprieta; si soy claro y empático, afloja poco a poco.<br>- Empieza tú con la primera frase del personaje y no salgas del papel hasta que yo diga "PAUSA".<br>- Dificultad inicial: media. Súbela si me ves cómodo/a y bájala si me ves bloqueado/a.<br>&lt;/como_actuar&gt;<br><br>&lt;al_decir_PAUSA&gt;<br>Sal del personaje y dame feedback en menos de 60 segundos hablados: (1) lo que mejor hice, con la frase exacta; (2) lo que más me costó; (3) una frase alternativa que habría funcionado mejor; (4) una nota de 1 a 10 en claridad, empatía y cierre. Después pregúntame si repetimos con más dificultad.<br>&lt;/al_decir_PAUSA&gt;</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Escena A · La llamada que no quieres coger</span>
+        <span data-prompt>Eres <span class="placeholder-chip">[nombre]</span>, cliente habitual desde hace dos años. Llamas enfadado/a porque <span class="placeholder-chip">[un pedido llegó tarde / un servicio no quedó bien]</span>. Pides un 30 % de descuento y amenazas con irte a la competencia. Tu motivo real: te has sentido ignorado/a; no es solo el dinero. Si me oyes escuchar sin excusas y proponer una solución concreta con fecha, aceptas un gesto pequeño (nunca el 30 %). Si me pongo a la defensiva, subes el tono.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Escena B · Véndete en 30 segundos</span>
+        <span data-prompt>Eres un posible cliente que ha oído hablar de mi negocio. Tienes 30 segundos y poca paciencia. Haces tres preguntas cortantes, una por turno: "¿Qué hacéis que no haga ya otro?", "¿Cuánto cuesta?" y "¿Por qué debería fiarme de vosotros?". Si mi respuesta es genérica, dices "eso me lo dicen todos". Si te doy una prueba concreta (un dato, un cliente, una garantía), pides el siguiente paso.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Escena C · El proveedor que falla</span>
+        <span data-prompt>Eres mi proveedor principal de <span class="placeholder-chip">[producto]</span>. Llamas para decir que el pedido de esta semana llegará 5 días tarde y que el precio sube un 8 % por las materias primas. Eres amable pero evasivo: das explicaciones largas y no ofreces nada. Solo cedes (descuento, envío parcial o fecha firme) si te pido algo concreto, uso mi volumen de compra como argumento y propongo una alternativa.</span>
+      </div>
+      </div>
+
+      <div class="mb-5">
+        <label class="field-label">Mis 3 KPIs (nombre · valor actual · meta a 90 días)</label>
+        <textarea rows="3" placeholder="Los que te dio la Junta, con su cifra de hoy y su meta." oninput="markFilled(this);save()"></textarea>
+      </div>
+      <div class="mb-5">
+        <label class="field-label">La nota de mi Junta y la corrección nº 1</label>
+        <textarea rows="2" placeholder="Nota final y la primera cosa que vas a arreglar." oninput="markFilled(this);save()"></textarea>
+      </div>
+      <div class="mb-5">
+        <label class="field-label">Mi referente y 3 principios suyos que voy a usar</label>
+        <textarea rows="3" placeholder="A quién le robas el criterio y qué principios te llevas." oninput="markFilled(this);save()"></textarea>
+      </div>
+      <div class="mb-5">
+        <label class="field-label">Gemini Live: qué me costó y qué haré distinto</label>
+        <textarea rows="2" placeholder="La escena que practicaste, lo que te costó y lo que cambiarás." oninput="markFilled(this);save()"></textarea>
+      </div>
+      <div class="hint">💡 Hoy no se construye nada nuevo: todo parte de tu Mapa de la semana pasada.</div>
+    </div>
+  </section>
+
+  <!-- ================= SEMANA 2 · DÍA 2 ================= -->
+  <section class="day-card glass" data-day="5">
+    <div class="day-body p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="seal" style="background:linear-gradient(45deg,#F59E0B,#EF4444);font-size:11px">2·2</div>
+          <div>
+            <span class="day-ribbon" style="background:#fef3c7;color:#92400e">Semana 2 · Día 2 · AI Studio</span>
+            <h2 class="text-xl font-bold text-slate-800 mt-1">Tu app y tu primer agente</h2>
+          </div>
+        </div>
+      </div>
+      <p class="text-slate-500 text-sm mb-3">Creas apps describiéndolas, sin instalar nada: aistudio.google.com/apps. Un agente es una app con IA dentro que hace una tarea por ti.</p>
+      <div class="rounded-2xl p-4 mb-5" style="background:#fffbeb;border:1.5px solid #fcd34d">
+        <div class="field-label" style="color:#92400e;margin-bottom:4px">⚠️ Antes de empezar</div>
+        <ul class="text-sm text-slate-700 space-y-1" style="list-style:disc;padding-left:20px">
+          <li>Entra con tu cuenta <b>personal @gmail.com</b>. Con una cuenta de empresa (Google Workspace) puede dar error al usar Gemini y pedirá facturación para publicar.</li>
+          <li>Publicar es gratis para tus <b>2 primeras apps</b>. Una tercera ya no.</li>
+          <li>En España, Google aplica a tus datos las condiciones de los servicios de pago (no entrena con ellos). Aun así, usa <b>datos de prueba</b>, nunca datos de clientes.</li>
+          <li>Las apps que usan Gemini <b>no las publiques</b>: los términos de Google exigen servicios de pago para ponerlas a disposición de usuarios del Espacio Económico Europeo. Úsalas en la vista previa.</li>
+          <li>La <b>clave de API no la pones tú</b>: AI Studio la configura sola como secreto del servidor (Settings → Secrets).</li>
+          <li>Si sale el error <b>429</b> o “límite alcanzado”, espera un minuto y vuelve a probar. No pidas cambios a ráfagas.</li>
+        </ul>
+      </div>
+
+      <div class="rounded-2xl p-4 mb-6" style="background:#f0f9ff;border:1.5px solid #7dd3fc">
+        <div class="field-label" style="color:#075985;margin-bottom:6px">🧩 Qué tiene un prompt de calidad (las 8 piezas)</div>
+        <p class="text-sm text-slate-600 mb-2">Detallado no es largo: cada línea toma una decisión. Los prompts de AI Studio llevan además: datos precargados, fórmulas dadas (no se las dejas inventar a la IA) y una revisión final.</p>
+        <ol class="text-sm text-slate-700 space-y-1" style="list-style:decimal;padding-left:20px">
+          <li><b>Rol y contexto:</b> quién es la IA y para quién trabaja.</li>
+          <li><b>Datos reales:</b> tus cifras, no ejemplos genéricos.</li>
+          <li><b>Tarea en pasos</b>, con un criterio claro de “hecho”.</li>
+          <li><b>Reglas en positivo</b> (lo que SÍ debe hacer) y con su motivo.</li>
+          <li><b>Formato de salida exacto:</b> títulos, tablas, longitud máxima.</li>
+          <li><b>Si falta información:</b> marcar [DATO NO APORTADO] y preguntar, como máximo, 3 cosas.</li>
+          <li><b>Revisión final:</b> la IA se corrige antes de contestar.</li>
+          <li><b>Segunda vuelta:</b> prompts para profundizar en el mismo chat.</li>
+        </ol>
+        <p class="hint">Las etiquetas como &lt;rol&gt; o &lt;proyecto&gt; separan las instrucciones de tus datos. Cópialas tal cual.</p>
+      </div>
+      <div class="rounded-2xl p-4 mb-6" style="background:#fffbeb;border:1.5px solid #fcd34d">
+        <div class="field-label" style="color:#92400e;margin-bottom:4px">📋 Tus prompts de hoy, en orden</div>
+        <p class="text-sm text-slate-600 mb-3">Pulsa <b>Copiar</b>, pégalo en el cuadro de texto de AI Studio (modo Build) y cambia solo lo amarillo.</p>
+        <div class="field-label" style="color:#92400e;margin-top:6px">1 · Tu primera app</div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Checklist del día · apertura y cierre</span>
+        <span data-prompt>## OBJETIVO<br>Crea una aplicación web llamada "Checklist del día" para <span class="placeholder-chip">[tipo de negocio: bar, tienda, peluquería...]</span> que ayude a abrir y cerrar el negocio sin olvidar nada. La usará una persona sola, desde el móvil, con prisa y a veces con las manos ocupadas: todo debe ser grande y rápido de tocar.<br><br>## FUNCIONALIDAD (cada punto está "hecho" cuando se puede comprobar en la vista previa)<br>1. Dos listas con pestañas: "Apertura" y "Cierre". Cada tarea es una fila con una casilla grande.<br>2. Precarga 8 tareas realistas por lista, adecuadas para <span class="placeholder-chip">[tipo de negocio]</span>.<br>3. Al marcar una tarea: animación suave, se tacha, pasa a estilo atenuado y muestra la hora a la que se marcó (HH:MM).<br>4. Anillo de progreso por lista con porcentaje y "5 de 8". Al llegar al 100 % aparece un mensaje breve y cálido ("Todo listo. Buen turno.") con una animación discreta.<br>5. Añadir, editar y borrar tareas desde un botón "+", pidiendo confirmación antes de borrar.<br>6. Botón "Nuevo día": desmarca todo y guarda el resumen del día anterior (fecha, tareas completadas, hora de la última) en un historial de 14 días.<br>7. Los datos se conservan al cerrar el navegador (localStorage).<br><br>## DISEÑO<br>- Móvil primero; en ordenador, una columna centrada de 480 px como máximo.<br>- Tema claro y cálido: fondo #F7F4EE, tarjetas blancas con sombra suave y esquinas de 16 px, un color de acento que combine con <span class="placeholder-chip">[tipo de negocio]</span> (indica su código HEX).<br>- Tipografía del sistema, texto de 16 px como mínimo, contraste suficiente.<br>- Estados cuidados: lista vacía con mensaje amable y confirmaciones visibles.<br>- Textos en español de España; fechas dd/mm/aaaa y horas en formato de 24 h.<br><br>## ANTES DE TERMINAR<br>Comprueba que no hay errores en consola, que todos los botones responden y que la app se ve bien con 360 px de ancho. Corrige lo que falle antes de enseñarme el resultado.</span>
+      </div>
+      <details class="mb-4" style="background:rgba(15,23,42,0.04);border-radius:14px;padding:10px 14px">
+        <summary style="cursor:pointer;font-weight:700;font-size:13px;color:#334155">Tres mejoras para pedir después en el chat (una por una)</summary>
+        <div class="mt-3">
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Mejora 1</span>
+        <span data-prompt>Añade un botón "Compartir resumen" que copie al portapapeles un texto del día para pegarlo en WhatsApp: fecha, tareas hechas y pendientes.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Mejora 2 · racha</span>
+        <span data-prompt>Añade un contador de racha: días seguidos con el 100 % de las dos listas. Cuando se rompa, muestra "Racha perdida: empieza otra hoy".</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Mejora 3</span>
+        <span data-prompt>Añade un modo oscuro con interruptor que recuerde mi preferencia.</span>
+      </div>
+        </div>
+      </details>
+        <div class="field-label mt-4" style="color:#92400e">2 · Tu panel de objetivos (rellena antes la tabla con TUS objetivos)</div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Mi panel de objetivos</span>
+        <span data-prompt>## ROL Y OBJETIVO<br>Actúa como un equipo de dos personas: un desarrollador front-end senior y un diseñador de producto especializado en paneles de control para pequeños negocios. Construye "Mi panel de objetivos": una aplicación web que me dice, de un vistazo, si voy a llegar a mis objetivos del periodo y qué debo hacer primero hoy.<br><br>## USUARIO Y CONTEXTO<br>Lo usaré yo solo (dueño/a de un pequeño negocio en España): desde el móvil por la mañana y desde el ordenador una vez por semana para revisar. Quiero entender el estado de mi negocio en menos de 10 segundos.<br><br>## MIS DATOS DE PARTIDA<br>Negocio: <span class="placeholder-chip">[nombre y actividad]</span><br>Periodo: del <span class="placeholder-chip">[dd/mm/aaaa]</span> al <span class="placeholder-chip">[dd/mm/aaaa]</span><br>OPCIÓN A, precarga exactamente estos objetivos y no inventes otros:<br>Área | Objetivo | Unidad | Valor inicial | Valor actual | Meta | Fecha límite | Responsable<br><span class="placeholder-chip">[Ventas]</span> | <span class="placeholder-chip">[Facturación mensual]</span> | <span class="placeholder-chip">[€]</span> | <span class="placeholder-chip">[..]</span> | <span class="placeholder-chip">[..]</span> | <span class="placeholder-chip">[..]</span> | <span class="placeholder-chip">[dd/mm/aaaa]</span> | <span class="placeholder-chip">[yo]</span><br><span class="placeholder-chip">[..]</span> | <span class="placeholder-chip">[..]</span> | <span class="placeholder-chip">[..]</span> | <span class="placeholder-chip">[..]</span> | <span class="placeholder-chip">[..]</span> | <span class="placeholder-chip">[..]</span> | <span class="placeholder-chip">[..]</span> | <span class="placeholder-chip">[..]</span><br>OPCIÓN B, si aún no tienes cifras: genera 5 objetivos de ejemplo realistas para <span class="placeholder-chip">[actividad]</span>, con cifras plausibles, para poder probar la app.<br><br>## MODELO DE DATOS<br>Objetivo: id, área, título, unidad, valorInicial, valorActual, meta, fechaInicio, fechaLímite, responsable, checkins[] (fecha, valor, nota). Un check-in nuevo actualiza valorActual y queda en el historial.<br><br>## LÓGICA (impleméntala tal cual)<br>- Avance real (%) = (valorActual − valorInicial) / (meta − valorInicial) × 100. Debe funcionar también cuando la meta es bajar algo (meta &lt; valorInicial). Si meta = valorInicial, muestra "—".<br>- Avance esperado (%) = días transcurridos / días totales del periodo × 100.<br>- Desviación = avance real − avance esperado, en puntos.<br>- Estado: EN CAMINO (desviación ≥ −5), RETRASADO (entre −5 y −20), EN RIESGO (&lt; −20). CONSEGUIDO si ya alcanzó la meta; FALLIDO si venció sin alcanzarla.<br>- Proyección de cierre: ritmo diario = (valorActual − valorInicial) / días transcurridos; valor proyectado = valorInicial + ritmo × días totales. Muestra "A este ritmo llegarás al X % de la meta" y, si no llegas, "Necesitas Y al día (hoy llevas Z)", donde Y = (meta − valorActual) / días restantes.<br>- Prioridad del día: ordena por (1) estado, EN RIESGO primero, (2) menos días restantes, (3) mayor desviación. Muestra los 3 primeros como "Tu prioridad de hoy", cada uno con una acción sugerida en una frase derivada de las cifras (p. ej. "Te faltan 12 clientes en 20 días: 4 por semana").<br>- Si falta un dato para calcular algo (p. ej. 0 días transcurridos), muestra "—" en lugar de un error.<br><br>## PANTALLA PRINCIPAL (de arriba abajo)<br>1. Cabecera: nombre del negocio, periodo, fecha de hoy y botón principal "Actualizar avances".<br>2. "Tu prioridad de hoy": las 3 tarjetas descritas arriba, grandes.<br>3. Resumen global: anillo con el % medio de avance y 4 contadores (conseguidos, en camino, retrasados, en riesgo).<br>4. Una tarjeta por objetivo: título, área, responsable, barra de avance real con una marca del avance esperado, etiqueta de estado, valor actual / meta, días restantes y proyección de cierre.<br>5. Gráfico de líneas del objetivo elegido: avance real (con sus check-ins) frente a la línea esperada, con selector de objetivo.<br>6. Historial: check-ins recientes con fecha y nota.<br><br>## INTERACCIONES<br>- "Actualizar avances" abre un formulario con todos los objetivos, un campo numérico por cada uno y una nota opcional; se guardan todos de una vez. Validación con mensajes claros.<br>- Editar un objetivo (meta, fecha límite, responsable), añadir y archivar.<br>- "Modo reunión": pantalla completa, ordenada de más a menos urgente, con letra grande.<br>- Exportar e importar en CSV; botón "Restablecer datos de ejemplo" con confirmación.<br>- Datos guardados en el navegador (localStorage), sin cuentas.<br><br>## DISEÑO<br>- Panel moderno, sobrio y fácil de leer. Fondo #0E100A, tarjetas #161A10, bordes rgba(255,255,255,0.07), esquinas de 16 px, sombra suave.<br>- Acento verde lima (#B7F542 a #8FE839). Estados: en camino = lima, retrasado = ámbar #F59E0B, en riesgo = rojo #EF4444, conseguido = azul #38BDF8.<br>- Tipografía Inter o la del sistema; cifras tabulares y grandes en los indicadores.<br>- Cuadrícula tipo "bento" que se apila en una columna en móvil (desde 360 px).<br>- Animaciones sutiles al cargar: los números cuentan hasta su valor, el anillo se dibuja y las barras crecen. Respeta la preferencia de "reducir movimiento" del sistema.<br>- Accesibilidad: el estado no se indica solo con color (añade texto o icono); contraste suficiente; elementos táctiles de 44 px de alto como mínimo; foco visible.<br><br>## IDIOMA Y FORMATOS<br>Todo en español de España. Fechas dd/mm/aaaa; euros con punto de miles y coma decimal (1.250,50 €).<br><br>## ORDEN DE CONSTRUCCIÓN<br>Primero datos, lógica y pantalla principal (puntos 1-4). Después el formulario de actualización y la persistencia. Por último gráfico, historial, modo reunión y exportación.<br><br>## ANTES DE TERMINAR<br>Comprueba con mis datos que: (1) las fórmulas dan lo mismo que calcularías a mano para dos objetivos; (2) no hay errores en consola; (3) con cero objetivos, o con uno sin check-ins, la pantalla sigue siendo clara; (4) todo se ve bien a 360 px. Corrige lo que falle y cuéntame en 3 líneas qué verificaste.</span>
+      </div>
+      <details class="mb-4" style="background:rgba(15,23,42,0.04);border-radius:14px;padding:10px 14px">
+        <summary style="cursor:pointer;font-weight:700;font-size:13px;color:#334155">Segunda vuelta del panel (en el chat de Build, una por una)</summary>
+        <div class="mt-3">
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Revisión como usuario nuevo</span>
+        <span data-prompt>Revisa la app como un usuario nuevo: ¿qué le costaría entender en 10 segundos? Mejora textos, jerarquía visual y estados vacíos, y dime qué cambiaste.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Resumen semanal</span>
+        <span data-prompt>Añade una tarjeta "Resumen semanal" que, a partir de los check-ins de los últimos 7 días, diga en 2 frases qué ha mejorado y qué ha empeorado, calculado con reglas (sin IA).</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Copiar resumen</span>
+        <span data-prompt>Añade un botón "Copiar resumen" que deje en el portapapeles un texto con la prioridad de hoy y los objetivos en riesgo, listo para pegar en WhatsApp.</span>
+      </div>
+        </div>
+      </details>
+        <div class="field-label mt-4" style="color:#92400e">3 · Dale cerebro: tu agente (la app consulta a Gemini)</div>
+        <p class="text-sm text-slate-600 mb-2"><b>Cómo se hace:</b> (1) abre tu panel en AI Studio, en el mismo proyecto, sin crear uno nuevo; (2) pega este prompt en el chat de la izquierda; (3) cuando termine, pulsa el botón “Veredicto de la Junta” arriba en tu panel. No hay que poner ninguna clave: AI Studio la configura sola. Si te la pide, mira Settings → Secrets o escribe en el chat: “Configura la clave de Gemini como secreto del servidor”.</p>
+        <p class="text-sm text-slate-600 mb-2"><b>¿Qué Junta consulta el botón?</b> No usa tu Gem ni la Junta del lunes: las apps de AI Studio no pueden usar los Gems de tu cuenta. El botón lleva su propia Junta de 4 expertos escrita en el prompt y evalúa los objetivos de tu panel, no tu Mapa completo. Si quieres que use tus propios expertos, añade al final del prompt: “Usa como instrucción de sistema este texto en lugar del anterior, manteniendo el formato JSON: [pega aquí las instrucciones de tu Gem]”.</p>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Botón “Veredicto de la Junta” dentro de tu app</span>
+        <span data-prompt>Añade a la app un botón "Veredicto de la Junta" en la parte superior que use la API de Gemini desde el servidor de la app. La clave debe quedar como secreto del servidor y no ser visible en el navegador.<br><br>Comportamiento:<br>1. Al pulsarlo, envía a Gemini mis objetivos actuales (título, área, valor actual, meta, fecha límite, estado, avance real y esperado) con esta instrucción de sistema:<br>"Eres una junta directiva de 4 expertos (Financiero, Marketing, Escéptico, Inversor) que evalúa los objetivos de un pequeño negocio español. Basa todo SOLO en los datos recibidos; si falta algún dato necesario, indícalo. Haz que al menos dos expertos discrepen con argumentos. Responde únicamente con JSON válido con esta forma: { "notaGlobal": número del 1 al 10, "expertos": [ { "rol": texto, "nota": número, "opinion": texto de 30 palabras como máximo } ], "desacuerdo": texto, "prioridades": [ { "objetivo": texto, "accion": texto, "plazo": texto } ] (exactamente 3) }"<br>2. Muestra la respuesta como tarjetas legibles: una por experto con su nota, el desacuerdo destacado y las 3 prioridades como lista de acciones.<br>3. Cuida los estados: indicador de carga y, si falla, el mensaje "No he podido consultar a la Junta ahora mismo. Espera un minuto y vuelve a intentarlo."<br>4. Para respetar el límite gratuito: bloquea el botón 15 segundos tras cada uso y guarda la última respuesta para mostrarla sin volver a llamar.<br>5. Envía solo los campos de los objetivos; nada de datos personales de terceros.</span>
+      </div>
+      <details class="mb-4" style="background:rgba(15,23,42,0.04);border-radius:14px;padding:10px 14px">
+        <summary style="cursor:pointer;font-weight:700;font-size:13px;color:#334155">Extras para ir más allá (opcionales)</summary>
+        <div class="mt-3">
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Conectar tu panel con Google Sheets</span>
+        <span data-prompt>Conecta la app con Google Sheets mediante la integración de Google Workspace de AI Studio. Usa una hoja llamada "Objetivos" con las columnas: id, área, título, unidad, valorInicial, valorActual, meta, fechaLímite, responsable; y una hoja "Check-ins" con: idObjetivo, fecha, valor, nota.<br>- Al abrir la app, carga los datos desde la hoja.<br>- Al guardar un check-in, actualiza valorActual en la fila del objetivo y añade una fila a "Check-ins".<br>- Si no hay permiso o falla la conexión, la app sigue funcionando con los datos locales y muestra el aviso "Trabajando sin conexión a la hoja".<br>- Explícame paso a paso qué permisos tengo que aceptar y por qué hace falta cada uno.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Tu briefing diario en Gemini (requiere conectar Gmail, Calendar y Drive: decides tú)</span>
+        <span data-prompt>&lt;rol&gt;<br>Eres mi jefe de gabinete: cada mañana me preparas el día de mi negocio para que sepa qué hacer primero.<br>&lt;/rol&gt;<br><br>&lt;tarea&gt;<br>Cuando escriba "Mi briefing":<br>1. Revisa @Google Calendar (hoy y mañana), @Gmail (no leídos de las últimas 24 horas) y la hoja "Objetivos" de @Google Drive, si existe.<br>2. Prioriza con esta regla: primero lo que tiene fecha u hora hoy; después los objetivos más alejados del ritmo necesario; después los correos de clientes o proveedores que esperan respuesta; por último, el resto.<br>&lt;/tarea&gt;<br><br>&lt;formato_salida&gt;<br>(a) "Tu día en una frase". (b) Top 3 prioridades, cada una con la acción y el tiempo estimado. (c) Agenda con horas. (d) Correos que requieren acción (máximo 5: remitente, asunto y acción de una línea; no incluyas newsletters ni promociones). (e) "Cuidado con": una cosa que se me puede escapar. Máximo 15 líneas.<br>&lt;/formato_salida&gt;<br><br>&lt;reglas&gt;<br>- Si una fuente no está conectada o no tiene datos, dilo en una línea y sigue con el resto.<br>- No envíes ni modifiques nada. Si conviene responder un correo, deja el borrador escrito aquí para que yo lo revise.<br>&lt;/reglas&gt;</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Gem “Arquitecto de Briefs” para crear cualquier app</span>
+        <span data-prompt>&lt;rol&gt;<br>Eres diseñador de producto y redactor de especificaciones. Conviertes la idea de un pequeño negocio en un "brief" listo para pegar en Google AI Studio (modo Build), que construye aplicaciones web a partir de texto.<br>&lt;/rol&gt;<br><br>&lt;como_trabajas&gt;<br>1. Con el primer mensaje, identifica qué sabes y qué falta sobre: (a) quién usa la app y desde qué dispositivo, (b) qué datos maneja, con sus campos reales, (c) las 3-5 funciones imprescindibles, (d) fórmulas o reglas de negocio, (e) estilo visual.<br>2. Si tienes al menos el 80 % de lo necesario, no preguntes: redacta el brief y declara tus supuestos al principio ("Asumo X; corrígeme"). Si falta algo que cambiaría la app, haz como máximo 3 preguntas, de una en una.<br>3. Entrega el brief con esta estructura exacta: OBJETIVO · USUARIO Y CONTEXTO · DATOS · LÓGICA (con fórmulas) · PANTALLAS · INTERACCIONES · DISEÑO (con valores concretos: colores HEX, tamaños, estados vacío y de error) · IDIOMA Y FORMATOS (español de España) · ORDEN DE CONSTRUCCIÓN · ANTES DE TERMINAR (autorrevisión).<br>4. Después del brief ofrece 3 prompts de mejora para pedir más tarde en el chat de Build y 1 comprobación que el usuario debe hacer en la vista previa.<br>&lt;/como_trabajas&gt;<br><br>&lt;principios&gt;<br>- Concreto: valores, fórmulas y textos reales en lugar de adjetivos.<br>- Una app, un propósito: si la idea mezcla varias cosas, propón empezar por la más útil.<br>- Si la idea exige pagos, claves externas o datos de clientes, avísalo y propón una alternativa gratuita: datos en el navegador, exportar a CSV y datos de prueba.<br>- Entrega el brief en un solo bloque listo para copiar, sin comentarios intercalados.<br>&lt;/principios&gt;<br><br>&lt;revision_final&gt;<br>Antes de entregarlo comprueba: ¿una persona sin contexto podría construir la app solo con este brief? ¿las fórmulas son inequívocas? ¿hay estados vacío y de error? Corrige antes de mostrarlo.<br>&lt;/revision_final&gt;</span>
+      </div>
+        </div>
+      </details>
+      </div>
+
+      <div class="mb-5">
+        <label class="field-label">Mi primera app: de qué es y su URL si la publico</label>
+        <textarea rows="2" placeholder="Tipo de negocio, qué hace tu checklist y el enlace si lo publicas." oninput="markFilled(this);save()"></textarea>
+      </div>
+      <div class="mb-5">
+        <label class="field-label">Mis objetivos cargados en el panel</label>
+        <textarea rows="3" placeholder="Los 3-5 objetivos con su meta y su fecha límite." oninput="markFilled(this);save()"></textarea>
+      </div>
+      <div class="mb-5">
+        <label class="field-label">Qué cambiaría de mi panel tras una semana de uso</label>
+        <textarea rows="2" placeholder="Lo que echarás en falta o lo que sobra." oninput="markFilled(this);save()"></textarea>
+      </div>
+      <div class="rounded-2xl p-4 mb-4" style="background:rgba(245,158,11,0.07);border:1.5px dashed #F59E0B">
+        <div class="field-label" style="color:#92400e;margin-bottom:6px">✅ Antes de compartir tu app</div>
+        <ul class="text-sm text-slate-700 space-y-1" style="list-style:none;padding-left:0">
+          <li>☐ La he probado en la vista previa: botones, formularios y tablas responden.</li>
+          <li>☐ No hay datos reales de clientes ni datos personales en el prompt ni en la app.</li>
+          <li>☐ Mi clave de API está guardada como secreto (Settings → Secrets), no escrita en pantalla.</li>
+          <li>☐ Si tiene IA dentro, sé que quien la use gasta mi cuota gratuita diaria.</li>
+          <li>☐ Solo publico apps SIN IA dentro. Las que usan Gemini, en España, requieren servicios de pago.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SEMANA 2 · DÍA 3 ================= -->
+  <section class="day-card glass" data-day="6">
+    <div class="day-body p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="seal" style="background:linear-gradient(45deg,#10B981,#0EA5E9);font-size:11px">2·3</div>
+          <div>
+            <span class="day-ribbon" style="background:#d1fae5;color:#065f46">Semana 2 · Día 3 · Antigravity</span>
+            <h2 class="text-xl font-bold text-slate-800 mt-1">Tu primer agente en tu ordenador</h2>
+          </div>
+        </div>
+      </div>
+      <p class="text-slate-500 text-sm mb-3">Un agente que trabaja en una carpeta de tu ordenador: lee, escribe, prueba y se corrige. El agente prepara; tú confirmas.</p>
+      <div class="rounded-2xl p-4 mb-5" style="background:#ecfdf5;border:1.5px solid #6ee7b7">
+        <div class="field-label" style="color:#065f46;margin-bottom:4px">⚠️ Antes de empezar</div>
+        <ul class="text-sm text-slate-700 space-y-1" style="list-style:disc;padding-left:20px">
+          <li>Entra con un <b>Gmail personal</b>. Una cuenta de empresa puede no funcionar.</li>
+          <li>Trabaja en una <b>carpeta solo para esto</b>, nunca en Documentos ni Descargas.</li>
+          <li><b>Solo datos ficticios.</b> Google puede guardar tus interacciones con el agente.</li>
+          <li>La cuota gratuita es <b>semanal</b>: no hagas pruebas sueltas.</li>
+          <li>Permisos: salir de la carpeta en <b>Always Ask</b>; comandos y cambios en <b>Request Review</b>.</li>
+        </ul>
+      </div>
+      <div class="rounded-2xl p-4 mb-6" style="background:#ecfdf5;border:1.5px solid #6ee7b7">
+        <div class="field-label" style="color:#065f46;margin-bottom:4px">📋 Tus prompts de hoy, en orden</div>
+        <p class="text-sm text-slate-600 mb-3">Pulsa <b>Copiar</b> y pégalo en el chat de Antigravity. Cambia solo lo amarillo.</p>
+        <div class="field-label" style="color:#065f46;margin-top:6px">1 · Primeras pruebas</div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Primera tarea de prueba</span>
+        <span data-prompt>Crea en esta carpeta un archivo llamado hola.txt que diga Funciona y dime dónde lo has guardado.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Segunda prueba: un CSV con la frase mágica</span>
+        <span data-prompt>Crea un archivo CSV con 10 servicios ficticios de una empresa de reformas (nombre y precio) y ordénalo del más barato al más caro. Si tú lo revisas y tiene cualquier tipo de fallo, hasta que no lo arregles no pares.</span>
+      </div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">La frase mágica (añádela al final de tus peticiones)</span>
+        <span data-prompt>Si tú lo revisas y tiene cualquier tipo de fallo, hasta que no lo arregles no pares.</span>
+      </div>
+      <details class="mb-4" style="background:rgba(15,23,42,0.04);border-radius:14px;padding:10px 14px">
+        <summary style="cursor:pointer;font-weight:700;font-size:13px;color:#334155">Cómo corregir al agente</summary>
+        <div class="mt-3">
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Feedback como a un compañero</span>
+        <span data-prompt>Háblale como a un compañero: qué ves, qué esperabas y dónde mirar.<br>Mal:  No funciona.<br>Bien: Cuando abro el archivo, la columna del precio sale vacía. Revisa solo esa columna y vuelve a probarlo.</span>
+      </div>
+        </div>
+      </details>
+        <div class="field-label mt-4" style="color:#065f46">2 · Tu cotizador (kit de prácticas: carpeta 01_Cotizador)</div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Cotizador de presupuestos (plan A: PDF)</span>
+        <span data-prompt>&lt;rol&gt;<br>Eres un asistente de presupuestos para una empresa de reformas en España. Trabajas solo dentro de esta carpeta del proyecto.<br>&lt;/rol&gt;<br><br>&lt;entradas&gt;<br>- Notas de clientes (texto copiado de WhatsApp) en "Kit_practicas_Antigravity/01_Cotizador/Entradas/": un archivo .txt por cliente.<br>- Tarifas en "Kit_practicas_Antigravity/01_Cotizador/Tarifas_Oficiales.xlsx" (hojas "Mano de obra" y "Materiales"), con concepto, unidad, coste interno y precio al cliente. Hay una copia en CSV por si la prefieres.<br>&lt;/entradas&gt;<br><br>&lt;tarea&gt;<br>Crea un programa que, para cada nota de "Entradas/":<br>1. Extraiga los servicios y las cantidades que pide el cliente (horas, metros cuadrados, unidades).<br>2. Relacione cada servicio con su tarifa. Si un servicio no aparece en las tarifas, no inventes el precio: déjalo marcado como PENDIENTE y avísame al final.<br>3. Calcule cada línea como cantidad × precio al cliente. Subtotal = suma de líneas. IVA = 21 % del subtotal. Total = subtotal + IVA.<br>4. Calcule el margen de cada línea como (precio − coste) ÷ precio. Si alguna línea queda por debajo del 25 %, márcala como REVISAR MARGEN.<br>5. Genere un presupuesto en PDF con aspecto profesional (nombre de la empresa, datos del cliente, tabla de conceptos, subtotal, IVA, total y validez de 30 días) en "01_Cotizador/Presupuestos_Listos/". Nombre del archivo: Presupuesto_<span class="placeholder-chip">[cliente]</span>_<span class="placeholder-chip">[fecha]</span>.pdf<br>&lt;/tarea&gt;<br><br>&lt;reglas&gt;<br>- Trabaja solo dentro de esta carpeta. No envíes ni borres nada.<br>- Muestra los importes con formato español (1.250,50 €).<br>- Si falta un dato necesario (cantidad o tipo de servicio), pregúntame antes de calcular.<br>&lt;/reglas&gt;<br><br>&lt;verificacion&gt;<br>Si tú lo revisas y tiene cualquier tipo de fallo, hasta que no lo arregles no pares. Al terminar, dime cuántos presupuestos has creado, los totales y las líneas pendientes o con margen bajo.<br>&lt;/verificacion&gt;</span>
+      </div>
+      <details class="mb-4" style="background:rgba(15,23,42,0.04);border-radius:14px;padding:10px 14px">
+        <summary style="cursor:pointer;font-weight:700;font-size:13px;color:#334155">Plan B: si no puede crear PDF</summary>
+        <div class="mt-3">
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Sustituye el punto 5 por esto</span>
+        <span data-prompt>5. Genere cada presupuesto como una página HTML con diseño profesional, lista para imprimir o guardar como PDF desde el navegador, en "01_Cotizador/Presupuestos_Listos/". Nombre del archivo: Presupuesto_<span class="placeholder-chip">[cliente]</span>_<span class="placeholder-chip">[fecha]</span>.html</span>
+      </div>
+        </div>
+      </details>
+        <div class="field-label mt-4" style="color:#065f46">3 · Subagentes: auditor de facturas (demo; carpeta 02_Auditor_facturas)</div>
+      <div class="prompt-box mb-3">
+        <button class="copy-btn" onclick="copyPrompt(this)">Copiar</button>
+        <span class="tag">Auditor de facturas con dos subagentes</span>
+        <span data-prompt>&lt;objetivo&gt;<br>Necesito automatizar el control de las facturas de mis proveedores para detectar subidas de precio no pactadas. Trabajas solo dentro de esta carpeta del proyecto.<br>&lt;/objetivo&gt;<br><br>&lt;equipo&gt;<br>Despliega dos subagentes especialistas que trabajen en paralelo y se pasen el trabajo mediante archivos.<br>&lt;/equipo&gt;<br><br>&lt;subagente nombre="Price Auditor" rol="Procesamiento de datos"&gt;<br>- Lee las facturas en PDF de "Kit_practicas_Antigravity/02_Auditor_facturas/Facturas_Recibidas/".<br>- De cada línea extrae: proveedor, número de factura, concepto, cantidad y precio unitario cobrado.<br>- Compara cada línea con "Acuerdos_Proveedores.xlsx" (carpeta 02_Auditor_facturas).<br>- Calcula: sobrecoste = (precio cobrado − precio acordado) × cantidad; porcentaje = (precio cobrado − precio acordado) ÷ precio acordado.<br>- Marca ALERTA si el sobrecoste supera 5,00 € o el porcentaje supera el 5 %.<br>- Guarda todas las líneas, con su resultado, en "Auditoria_Mensual.xlsx" dentro de 02_Auditor_facturas.<br>&lt;/subagente&gt;<br><br>&lt;subagente nombre="Claim Draft Agent" rol="Documentación"&gt;<br>- Lee las ALERTAS de "Auditoria_Mensual.xlsx".<br>- Por cada proveedor con alertas, redacta un borrador de carta de reclamación en Word, formal y cordial, con número de factura, conceptos afectados, importes y la solicitud de factura rectificativa.<br>- Guárdalo en "02_Auditor_facturas/Reclamaciones_Generadas/". Nombre: Reclamacion_<span class="placeholder-chip">[proveedor]</span>_<span class="placeholder-chip">[factura]</span>.docx<br>&lt;/subagente&gt;<br><br>&lt;coordinacion&gt;<br>El segundo subagente empieza cuando el primero haya guardado "Auditoria_Mensual.xlsx". Ninguno inventa datos: si una factura no se puede leer, se anota como NO LEÍDA en la auditoría y me lo dices.<br>&lt;/coordinacion&gt;<br><br>&lt;reglas&gt;<br>- No envíes nada ni borres archivos. Las cartas son borradores para que yo los revise.<br>- Muestra los importes con formato español (1.250,50 €).<br>&lt;/reglas&gt;<br><br>&lt;verificacion&gt;<br>Si cualquiera de los dos detecta un fallo, debe corregirlo hasta que funcione, sin parar. Al terminar, dime cuántas facturas se han leído, qué alertas hay y qué borradores has creado.<br>&lt;/verificacion&gt;</span>
+      </div>
+      </div>
+
+      <div class="mb-5">
+        <label class="field-label">Mi instalación: ¿funciona? ¿Cuánto tardé y qué avisos salieron?</label>
+        <textarea rows="2" placeholder="Windows o Mac, si hola.txt se creó y cualquier aviso." oninput="markFilled(this);save()"></textarea>
+      </div>
+      <div class="mb-5">
+        <label class="field-label">Cotizador: los totales que me salieron</label>
+        <textarea rows="3" placeholder="Nota 1, nota 2 y nota 3, y si coinciden con los esperados." oninput="markFilled(this);save()"></textarea>
+      </div>
+      <div class="mb-5">
+        <label class="field-label">Qué ajusté en los permisos y por qué</label>
+        <textarea rows="2" placeholder="Los tres ajustes y qué hizo el agente al pedir permiso." oninput="markFilled(this);save()"></textarea>
+      </div>
+      <div class="mb-5">
+        <label class="field-label">Una tarea repetitiva de mi negocio que entraría en una carpeta</label>
+        <textarea rows="3" placeholder="Qué entra, qué debería salir y qué revisaría yo." oninput="markFilled(this);save()"></textarea>
+      </div>
+      <div class="hint">💡 Regla de oro: el agente prepara; tú confirmas. Nada de comprar, enviar, pagar o borrar sin tu visto bueno.</div>
+    </div>
+  </section>
+
+  <!-- CIERRE -->
+  <section class="glass rounded-2xl p-6 text-center no-print">
+    <h3 class="text-lg font-bold text-slate-800 mb-2">¿Mapa completo?</h3>
+    <p class="text-slate-500 text-sm mb-4">Te lo llevas entero. Es tuyo, lo construiste tú.</p>
+    <div class="flex flex-wrap gap-3 justify-center">
+      <button class="btn-primary" onclick="window.print()">📄 Guardar como PDF</button>
+      <button class="btn-ghost" onclick="resetAll()">Empezar de cero</button>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORE='mapaNegocio_v1';
+
+/* ---- Persistencia en memoria (no localStorage en artifacts) ---- */
+let state={fields:{},tasks:[],owner:'',biz:''};
+
+function save(){
+  // Guarda en variable de sesión (los campos ya viven en el DOM)
+  updateProgress();
+}
+
+function markFilled(el){
+  if(el.value.trim().length>0) el.classList.add('filled');
+  else el.classList.remove('filled');
+}
+
+/* ---- Progreso y desbloqueo ---- */
+function updateProgress(){
+  const days=[1,2,3];
+  let totalFilled=0, totalFields=0;
+  const dayFilled={1:0,2:0,3:0}, dayTotal={1:0,2:0,3:0};
+
+  document.querySelectorAll('section[data-day]').forEach(sec=>{
+    const d=+sec.dataset.day;
+    sec.querySelectorAll('[data-field]').forEach(f=>{
+      dayTotal[d]++; totalFields++;
+      if(f.value.trim().length>0){dayFilled[d]++; totalFilled++;}
+    });
+  });
+
+  const pct=totalFields?Math.round(totalFilled/totalFields*100):0;
+  document.getElementById('progressFill').style.width=pct+'%';
+
+  // Sellos por día
+  days.forEach(d=>{
+    const seal=document.getElementById('seal-'+d);
+    if(dayTotal[d]>0 && dayFilled[d]===dayTotal[d]){seal.textContent='✅';}
+    else if(dayFilled[d]>0){seal.textContent='✍️';}
+    else {seal.textContent = d===1?'🔓':'🔒';}
+  });
+
+  // Desbloqueo progresivo: el día N+1 se ilumina cuando el N tiene algo
+  unlock(2, dayFilled[1]>0);
+  unlock(3, dayFilled[2]>0);
+
+  // Label
+  const lbl=document.getElementById('progressLabel');
+  if(pct===0) lbl.textContent='0% · empieza por el Día 1';
+  else if(pct===100) lbl.textContent='100% · ¡mapa completo! 🎉';
+  else lbl.textContent=pct+'% · vas por buen camino';
+}
+
+function unlock(day,cond){
+  const sec=document.querySelector(`section[data-day="${day}"]`);
+  if(!sec) return;
+  if(cond) sec.classList.remove('locked');
+  else sec.classList.add('locked');
+}
+
+/* ---- Ejemplos ---- */
+function toggleExample(id){
+  document.getElementById(id).classList.toggle('hidden');
+}
+
+/* ---- Copiar prompts ---- */
+function copyPrompt(btn){
+  const box=btn.closest('.prompt-box');
+  const txt=box.querySelector('[data-prompt]').innerText;
+  function ok(){ showToast('Prompt copiado. Pégalo en tu IA.'); btn.textContent='✓ Copiado'; setTimeout(()=>btn.textContent='Copiar',1800); }
+  function fallback(){
+    const ta=document.createElement('textarea'); ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); ok(); }catch(e){ showToast('No se pudo copiar: selecciona el texto a mano.'); }
+    ta.remove();
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(ok).catch(fallback); }
+  else { fallback(); }
+}
+
+/* ---- MoSCoW tasks ---- */
+const PRIOS=['must','should','could','wont'];
+const PRIO_LABEL={must:'Must',should:'Should',could:'Could',wont:'Won\'t'};
+let taskSeq=0;
+
+function addTask(text='',prio='should'){
+  const id='t'+(taskSeq++);
+  const wrap=document.createElement('div');
+  wrap.className='flex items-center gap-2';
+  wrap.id=id;
+  wrap.innerHTML=`
+    <input type="text" placeholder="Escribe una tarea…" value="${text.replace(/"/g,'&quot;')}"
+      oninput="markFilled(this)" data-field style="flex:1">
+    <div class="flex gap-1" data-prio="${prio}">
+      ${PRIOS.map(p=>`<span class="moscow-pill m-${p} ${p===prio?'':'dim'}"
+        onclick="setPrio('${id}','${p}')">${PRIO_LABEL[p]}</span>`).join('')}
+    </div>
+    <span class="text-slate-300 hover:text-red-400 cursor-pointer px-1" onclick="document.getElementById('${id}').remove();updateProgress()">✕</span>
+  `;
+  document.getElementById('taskList').appendChild(wrap);
+  updateProgress();
+}
+
+function setPrio(id,prio){
+  const wrap=document.getElementById(id);
+  wrap.querySelector('[data-prio]').dataset.prio=prio;
+  wrap.querySelectorAll('.moscow-pill').forEach(p=>{
+    p.classList.toggle('dim', !p.classList.contains('m-'+prio));
+  });
+}
+
+/* ---- Toast ---- */
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+/* ---- Reset ---- */
+function resetAll(){
+  if(!confirm('¿Seguro? Se borrará todo lo escrito.')) return;
+  document.querySelectorAll('textarea,input[type=text]').forEach(el=>{el.value='';el.classList.remove('filled')});
+  document.getElementById('taskList').innerHTML='';
+  addTask();
+  updateProgress();
+  showToast('Mapa reiniciado. A empezar.');
+}
+
+/* ---- Init ---- */
+window.onload=function(){
+  addTask('Definir mi propuesta de valor','must');
+  document.querySelectorAll('input[type=text],textarea').forEach(el=>{
+    el.addEventListener('input',()=>markFilled(el));
+  });
+  updateProgress();
+};
+
+/* ==== PERSISTENCIA (localStorage) + COPIA DESCARGABLE ==== */
+(function(){
+  const KEY='mapaNegocio_incyde_v1';
+  function collect(){
+    const f=[];
+    document.querySelectorAll('textarea,input[type=text]').forEach(el=>{ if(!el.closest('#taskList')) f.push(el.value); });
+    const t=[];
+    document.querySelectorAll('#taskList > div').forEach(w=>{
+      const inp=w.querySelector('input'); const pr=w.querySelector('[data-prio]');
+      t.push({text: inp?inp.value:'', prio: pr?pr.dataset.prio:'should'});
+    });
+    return {f:f,t:t};
+  }
+  window.persist=function(){ try{ localStorage.setItem(KEY, JSON.stringify(collect())); }catch(e){} };
+  function restore(){
+    let data=null;
+    try{ data=JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){}
+    if(!data) return;
+    let i=0;
+    document.querySelectorAll('textarea,input[type=text]').forEach(el=>{
+      if(el.closest('#taskList')) return;
+      if(data.f && data.f[i]!==undefined){ el.value=data.f[i]; }
+      i++;
+    });
+    if(data.t && data.t.length){
+      document.getElementById('taskList').innerHTML='';
+      data.t.forEach(x=>addTask(x.text,x.prio));
+    }
+    document.querySelectorAll('textarea,input[type=text]').forEach(el=>markFilled(el));
+    updateProgress();
+  }
+  const prev=window.onload;
+  window.onload=function(){ if(prev) prev(); restore(); };
+  document.addEventListener('input', window.persist);
+  document.addEventListener('click', function(){ setTimeout(window.persist,0); });
+
+  window.descargarMapa=function(){
+    let out='MI MAPA DE NEGOCIO · Crea tu futuro con IA\n\n';
+    const own=document.getElementById('ownerName').value, biz=document.getElementById('bizName').value;
+    out+='Nombre: '+own+'\nNegocio: '+biz+'\n\n';
+    document.querySelectorAll('section[data-day]').forEach(sec=>{
+      const rib=sec.querySelector('.day-ribbon'); out+='=== '+(rib?rib.textContent.trim():'Día '+sec.dataset.day)+' ===\n';
+      sec.querySelectorAll('textarea,input[type=text]').forEach(el=>{
+        const box=el.closest('div'); const lab=box?box.querySelector('.field-label'):null;
+        out+=(lab?lab.textContent.trim():'Campo')+':\n'+el.value+'\n\n';
+      });
+    });
+    const blob=new Blob([out],{type:'text/plain;charset=utf-8'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='mi-mapa-de-negocio.txt';
+    document.body.appendChild(a); a.click(); a.remove();
+  };
+})();
+</script>
+<button class="no-print" onclick="descargarMapa()" style="position:fixed;right:16px;bottom:16px;z-index:50;background:#059669;color:#fff;border:none;border-radius:999px;padding:12px 18px;font-weight:700;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.2);cursor:pointer">⬇ Guardar copia (.txt)</button>
+</body>
+</html>
